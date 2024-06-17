@@ -254,7 +254,7 @@ class PrefixForm(TenancyForm, NetBoxModelForm):
     class Meta:
         model = Prefix
         fields = [
-            'prefix', 'vrf', 'site_group', 'site', 'location', 'rack', 'vlan', 'status', 'role', 'is_pool', 'mark_utilized', 'tenant_group', 'tenant',
+            'prefix', 'vrf',  'site', 'location', 'rack', 'vlan', 'status', 'role', 'is_pool', 'mark_utilized', 'tenant_group', 'tenant',
             'description', 'comments', 'tags',
         ]
         fieldsets = (

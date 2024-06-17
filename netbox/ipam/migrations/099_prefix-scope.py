@@ -4,6 +4,10 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
+    dependencies = [
+        ('ipam', '0069_gfk_indexes'),
+    ]
+
     operations = [
         migrations.RenameField(
             model_name='prefix',
@@ -22,10 +26,10 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelOptions(
             name='prefix',
-            options={'ordering': ('name', 'pk'), 'verbose_name': 'VLAN group', 'verbose_name_plural': 'VLAN groups'},
+            options={'ordering': ('name', 'pk'), 'verbose_name': 'Prefix', 'verbose_name_plural': 'Prefixes'},
         ),
         migrations.AlterUniqueTogether(
             name='prefix',
-            unique_together={('scope_type', 'scope_id', 'name'), ('scope_type', 'scope_id', 'slug')},
+            unique_together={('scope_type', 'scope_id'), ('scope_type', 'scope_id')},
         ),
     ]
