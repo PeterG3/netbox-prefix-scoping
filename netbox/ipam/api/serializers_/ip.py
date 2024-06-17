@@ -47,7 +47,15 @@ class AggregateSerializer(NetBoxModelSerializer):
 class PrefixSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='ipam-api:prefix-detail')
     family = ChoiceField(choices=IPAddressFamilyChoices, read_only=True)
-    site = SiteSerializer(nested=True, required=False, allow_null=True)
+    #site = SiteSerializer(nested=True, required=False, allow_null=True)
+    scope_type = ContentTypeField(
+        queryset=ContentType.objects.filter(
+            app_label='dcim',
+            model__in=['region', 'sitegroup', 'site', 'location', 'rack']
+        )
+    )
+    scope_id = serializers.IntegerField(allow_null=True, required=False, default=None)
+    scope = serializers.SerializerMethodField(read_only=True)
     vrf = VRFSerializer(nested=True, required=False, allow_null=True)
     tenant = TenantSerializer(nested=True, required=False, allow_null=True)
     vlan = VLANSerializer(nested=True, required=False, allow_null=True)
@@ -60,11 +68,20 @@ class PrefixSerializer(NetBoxModelSerializer):
     class Meta:
         model = Prefix
         fields = [
-            'id', 'url', 'display', 'family', 'prefix', 'site', 'vrf', 'tenant', 'vlan', 'status', 'role', 'is_pool',
+            'id', 'url', 'display', 'family', 'prefix', 'scope_type', 'scope_id', 'scope', 'vrf', 'tenant', 'vlan', 'status', 'role', 'is_pool',
             'mark_utilized', 'description', 'comments', 'tags', 'custom_fields', 'created', 'last_updated', 'children',
             '_depth',
         ]
         brief_fields = ('id', 'url', 'display', 'family', 'prefix', 'description', '_depth')
+    
+    @extend_schema_field(serializers.JSONField(allow_null=True))
+    def get_scope(self, obj):
+        if obj.scope_id is None:
+            return None
+        serializer = get_serializer_for_model(obj.scope, prefix='Nested')
+        context = {'request': self.context['request']}
+
+        return serializer(obj.scope, context=context).data
 
 
 class PrefixLengthSerializer(serializers.Serializer):

@@ -332,7 +332,7 @@ class PrefixFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
         to_field_name='rd',
         label=_('VRF (RD)'),
     )
-    region_id = TreeNodeMultipleChoiceFilter(
+    '''region_id = TreeNodeMultipleChoiceFilter(
         queryset=Region.objects.all(),
         field_name='site__region',
         lookup_expr='in',
@@ -368,6 +368,24 @@ class PrefixFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
         to_field_name='slug',
         label=_('Site (slug)'),
     )
+    '''
+    scope_type = ContentTypeFilter()
+    region = django_filters.NumberFilter(
+        method='filter_scope'
+    )
+    sitegroup = django_filters.NumberFilter(
+        method='filter_scope'
+    )
+    site = django_filters.NumberFilter(
+        method='filter_scope'
+    )
+    rack = django_filters.NumberFilter(
+        method='filter_scope'
+    )
+    location = django_filters.NumberFilter(
+        method='filter_scope'
+    )
+
     vlan_id = django_filters.ModelMultipleChoiceFilter(
         queryset=VLAN.objects.all(),
         label=_('VLAN (ID)'),
@@ -393,7 +411,13 @@ class PrefixFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
 
     class Meta:
         model = Prefix
-        fields = ('id', 'is_pool', 'mark_utilized', 'description')
+        fields = ('id', 'is_pool', 'mark_utilized', 'description','scope_id')
+
+    def filter_scope(self, queryset, name, value):
+        return queryset.filter(
+            scope_type=ContentType.objects.get(app_label='dcim', model=name),
+            scope_id=value
+        )
 
     def search(self, queryset, name, value):
         if not value.strip():

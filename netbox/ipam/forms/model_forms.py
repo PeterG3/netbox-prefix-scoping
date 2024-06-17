@@ -202,9 +202,30 @@ class PrefixForm(TenancyForm, NetBoxModelForm):
     site = DynamicModelChoiceField(
         label=_('Site'),
         queryset=Site.objects.all(),
+        initial_params={
+            'locations': '$location'
+        },
         required=False,
         selector=True,
         null_option='None'
+    )
+    location = DynamicModelChoiceField(
+        queryset=Location.objects.all(),
+        required=False,
+        initial_params={
+            'racks': '$rack'
+        },
+        query_params={
+            'site_id': '$site',
+        }
+    )
+    rack = DynamicModelChoiceField(
+        queryset=Rack.objects.all(),
+        required=False,
+        query_params={
+            'site_id': '$site',
+            'location_id': '$location',
+        }
     )
     vlan = DynamicModelChoiceField(
         queryset=VLAN.objects.all(),
@@ -233,9 +254,41 @@ class PrefixForm(TenancyForm, NetBoxModelForm):
     class Meta:
         model = Prefix
         fields = [
-            'prefix', 'vrf', 'site', 'vlan', 'status', 'role', 'is_pool', 'mark_utilized', 'tenant_group', 'tenant',
+            'prefix', 'vrf', 'site_group', 'site', 'location', 'rack', 'vlan', 'status', 'role', 'is_pool', 'mark_utilized', 'tenant_group', 'tenant',
             'description', 'comments', 'tags',
         ]
+        fieldsets = (
+            ('Prefix', ('name', 'slug', 'description')),
+            ('Scope', ('region', 'site_group', 'site', 'location', 'rack')),
+        )
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance')
+        initial = kwargs.get('initial', {})
+
+        if instance is not None and instance.scope:
+            if type(instance.scope) is Rack:
+                initial['rack'] = instance.scope
+            elif type(instance.scope) is Location:
+                initial['location'] = instance.scope
+            elif type(instance.scope) is Site:
+                initial['site'] = instance.scope
+            elif type(instance.scope) is SiteGroup:
+                initial['site_group'] = instance.scope
+            elif type(instance.scope) is Region:
+                initial['region'] = instance.scope
+
+            kwargs['initial'] = initial
+
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+
+        # Assign scope object
+        self.instance.scope = self.cleaned_data['rack'] or self.cleaned_data['location'] or self.cleaned_data['site'] \
+            or self.cleaned_data['site_group'] or self.cleaned_data['region'] or None
+
 
 
 class IPRangeForm(TenancyForm, NetBoxModelForm):

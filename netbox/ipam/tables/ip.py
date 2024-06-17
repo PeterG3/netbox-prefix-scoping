@@ -240,8 +240,10 @@ class PrefixTable(TenancyColumnsMixin, NetBoxTable):
         template_code=VRF_LINK,
         verbose_name=_('VRF')
     )
-    site = tables.Column(
-        verbose_name=_('Site'),
+    #site = tables.Column(
+    #    verbose_name=_('Site'),
+    scope = tables.Column(
+        verbose_name=_('Scope'),
         linkify=True
     )
     vlan_group = tables.Column(
@@ -282,11 +284,11 @@ class PrefixTable(TenancyColumnsMixin, NetBoxTable):
         model = Prefix
         fields = (
             'pk', 'id', 'prefix', 'prefix_flat', 'status', 'children', 'vrf', 'utilization', 'tenant', 'tenant_group',
-            'site', 'vlan_group', 'vlan', 'role', 'is_pool', 'mark_utilized', 'description', 'comments', 'tags',
+            'scope_type', 'scope', 'vlan_group', 'vlan', 'role', 'is_pool', 'mark_utilized', 'description', 'comments', 'tags',
             'created', 'last_updated',
         )
         default_columns = (
-            'pk', 'prefix', 'status', 'children', 'vrf', 'utilization', 'tenant', 'site', 'vlan', 'role', 'description',
+            'pk', 'prefix', 'status', 'children', 'vrf', 'utilization', 'tenant', 'scope_type', 'scope', 'vlan', 'role', 'description',
         )
         row_attrs = {
             'class': lambda record: 'success' if not record.pk else '',

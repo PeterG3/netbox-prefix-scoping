@@ -217,12 +217,30 @@ class Prefix(ContactsMixin, GetAvailablePrefixesMixin, PrimaryModel):
         verbose_name=_('prefix'),
         help_text=_('IPv4 or IPv6 network with mask')
     )
-    site = models.ForeignKey(
-        to='dcim.Site',
-        on_delete=models.PROTECT,
-        related_name='prefixes',
+    #site = models.ForeignKey(
+    #    to='dcim.Site',
+    #    on_delete=models.PROTECT,
+    #    related_name='prefixes',
+    #    blank=True,
+    #    null=True
+    #)
+    scope_type = models.ForeignKey(
+        to=ContentType,
+        on_delete=models.CASCADE,
+        limit_choices_to=Q(
+            app_label='dcim',
+            model__in=['region', 'sitegroup', 'site', 'location', 'rack']
+        ),
         blank=True,
         null=True
+    )
+    scope_id = models.PositiveBigIntegerField(
+        blank=True,
+        null=True
+    )
+    scope = GenericForeignKey(
+        ct_field='scope_type',
+        fk_field='scope_id'
     )
     vrf = models.ForeignKey(
         to='ipam.VRF',
