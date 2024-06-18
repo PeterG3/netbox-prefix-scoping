@@ -226,7 +226,7 @@ class Prefix(ContactsMixin, GetAvailablePrefixesMixin, PrimaryModel):
     #    null=True
     #)
     scope_type = models.ForeignKey(
-        to=ContentType,
+        to='contenttypes.ContentType',
         on_delete=models.CASCADE,
         limit_choices_to=Q(
             app_label='dcim',
@@ -304,11 +304,14 @@ class Prefix(ContactsMixin, GetAvailablePrefixesMixin, PrimaryModel):
     objects = PrefixQuerySet.as_manager()
 
     clone_fields = (
-        'vrf', 'tenant', 'vlan', 'status', 'role', 'is_pool', 'mark_utilized', 'description',
+        'scope_type','scope_id','vrf', 'tenant', 'vlan', 'status', 'role', 'is_pool', 'mark_utilized', 'description',
     )
 
     class Meta:
         ordering = (F('vrf').asc(nulls_first=True), 'prefix', 'pk')  # (vrf, prefix) may be non-unique
+        indexes = (
+            models.Index(fields=('scope_type', 'scope_id')),
+        )
         verbose_name = _('prefix')
         verbose_name_plural = _('prefixes')
 

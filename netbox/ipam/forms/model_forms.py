@@ -194,10 +194,23 @@ class RoleForm(NetBoxModelForm):
 
 
 class PrefixForm(TenancyForm, NetBoxModelForm):
+    scope_type = ContentTypeChoiceField(
+        label=_('Scope type'),
+        queryset=ContentType.objects.filter( model__in=['region', 'sitegroup', 'site', 'location', 'rack']),
+        required=False
+    )
     vrf = DynamicModelChoiceField(
         queryset=VRF.objects.all(),
         required=False,
         label=_('VRF')
+    )
+    region = DynamicModelChoiceField(
+        label=_('Region'),
+        queryset=Region.objects.all(),
+        required=False,
+        initial_params={
+            'sites': '$site'
+        }
     )
     site = DynamicModelChoiceField(
         label=_('Site'),
@@ -247,19 +260,21 @@ class PrefixForm(TenancyForm, NetBoxModelForm):
         FieldSet(
             'prefix', 'status', 'vrf', 'role', 'is_pool', 'mark_utilized', 'description', 'tags', name=_('Prefix')
         ),
-        FieldSet('site', 'vlan', name=_('Site/VLAN Assignment')),
+        FieldSet('vlan', name=_('Site/VLAN Assignment')),
+        FieldSet('scope_type', 'region', 'site', 'location', 'rack', name=_('Scope')),
         FieldSet('tenant_group', 'tenant', name=_('Tenancy')),
+
     )
 
     class Meta:
         model = Prefix
         fields = [
-            'prefix', 'vrf',  'site', 'location', 'rack', 'vlan', 'status', 'role', 'is_pool', 'mark_utilized', 'tenant_group', 'tenant',
+            'prefix', 'vrf',  'scope_type', 'region', 'site', 'location', 'rack', 'vlan', 'status', 'role', 'is_pool', 'mark_utilized', 'tenant_group', 'tenant',
             'description', 'comments', 'tags',
         ]
         fieldsets = (
             ('Prefix', ('name', 'slug', 'description')),
-            ('Scope', ('region', 'site_group', 'site', 'location', 'rack')),
+            ('Scope', ('region', 'site', 'location', 'rack')),
         )
 
     def __init__(self, *args, **kwargs):
@@ -285,10 +300,12 @@ class PrefixForm(TenancyForm, NetBoxModelForm):
     def clean(self):
         super().clean()
 
-        # Assign scope object
-        self.instance.scope = self.cleaned_data['rack'] or self.cleaned_data['location'] or self.cleaned_data['site'] \
-            or self.cleaned_data['site_group'] or self.cleaned_data['region'] or None
-
+        # Assign scope based on scope_type
+        if self.cleaned_data.get('scope_type'):
+            scope_field = self.cleaned_data['scope_type'].model
+            self.instance.scope = self.cleaned_data.get(scope_field)
+        else:
+            self.instance.scope_id = None
 
 
 class IPRangeForm(TenancyForm, NetBoxModelForm):

@@ -52,7 +52,10 @@ class PrefixSerializer(NetBoxModelSerializer):
         queryset=ContentType.objects.filter(
             app_label='dcim',
             model__in=['region', 'sitegroup', 'site', 'location', 'rack']
-        )
+        ),
+        allow_null=True,
+        required=False,
+        default=None
     )
     scope_id = serializers.IntegerField(allow_null=True, required=False, default=None)
     scope = serializers.SerializerMethodField(read_only=True)

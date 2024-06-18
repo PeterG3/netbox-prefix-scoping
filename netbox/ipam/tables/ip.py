@@ -242,9 +242,13 @@ class PrefixTable(TenancyColumnsMixin, NetBoxTable):
     )
     #site = tables.Column(
     #    verbose_name=_('Site'),
+    scope_type = columns.ContentTypeColumn(
+        verbose_name=_('Scope Type'),
+    )
     scope = tables.Column(
         verbose_name=_('Scope'),
-        linkify=True
+        linkify=True,
+        orderable=False
     )
     vlan_group = tables.Column(
         accessor='vlan__group',
